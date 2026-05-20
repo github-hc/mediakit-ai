@@ -67,7 +67,9 @@ async def root():
         "app": settings.APP_NAME,
         "env": settings.APP_ENV,
         "status": "healthy",
-        "provider": settings.IMAGE_PROVIDER
+        "provider": settings.IMAGE_PROVIDER,
+        "docs_url": "/docs",
+        "openapi_url": "/openapi.json"
     }
 
 if __name__ == "__main__":

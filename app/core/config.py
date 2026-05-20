@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     
     # Ollama Provider Configurations
     OLLAMA_BASE_URL: str = "http://localhost:11434"
-    OLLAMA_MODEL: str = "stable-diffusion"
+    OLLAMA_MODEL: str = "x/flux2-klein:4b"
 
     # Support loading from .env file
     model_config = SettingsConfigDict(

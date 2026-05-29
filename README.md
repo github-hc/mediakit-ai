@@ -85,3 +85,48 @@ Run the test suite using pytest:
 ```bash
 pytest
 ```
+
+## Environment Variables
+
+Use `.env.example` as a template — it is safe to check into source control and contains placeholders for sensitive values. Do NOT commit a filled `.env` with real credentials or API tokens.
+
+Important variables:
+- `IMAGE_PROVIDER` — `ollama` or `diffusers` (set to `ollama` to enable OCR and Ollama-based image generation).
+- `OLLAMA_BASE_URL` — HTTP URL of your local Ollama server (default: `http://localhost:11434`).
+- `OLLAMA_MODEL` — default image generation model (e.g. `x/flux2-klein:4b`).
+- `OLLAMA_OCR_MODEL` — OCR model name (e.g. `deepseek-ocr:latest`).
+- `HF_API_TOKEN` — (optional) Hugging Face API token if using HF features.
+
+To create a local `.env` from the example:
+```bash
+cp .env.example .env
+# edit .env and provide any required tokens or model names
+```
+
+## OCR (deepseek-ocr)
+
+The project exposes an OCR endpoint that uses the configured `OLLAMA_OCR_MODEL` via the Ollama HTTP API.
+
+- FastAPI route: `POST /api/v1/images/ocr` — accepts a multipart file upload (`file`).
+
+Example curl request:
+```bash
+curl -X POST "http://localhost:8000/api/v1/images/ocr" \
+   -F "file=@img.png" \
+   -H "Accept: application/json"
+```
+
+If the server returns a 502 (ProviderError), check that your Ollama server is running and that the OCR model is loaded. Verify locally with:
+```bash
+# start/load the model (interactive)
+ollama run deepseek-ocr:latest
+
+# or list models (if supported by your Ollama version)
+ollama list
+```
+
+For quick local debugging you can run the helper script `test6.py` in the repository root; it will call the Ollama HTTP API and print the extracted OCR text for `img.png`:
+```bash
+python test6.py
+```
+

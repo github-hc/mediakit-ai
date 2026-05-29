@@ -52,3 +52,57 @@ class ImageService:
             prompt=request.prompt,
             **filtered_kwargs
         )
+
+    async def ocr_image(self, image_bytes: bytes) -> str:
+        """
+        Perform OCR on image bytes using Ollama's deepseek-ocr model.
+        """
+        import base64
+        import httpx
+        from app.core.exceptions import ProviderError
+
+        base_url = settings.OLLAMA_BASE_URL.rstrip("/")
+        ocr_model = settings.OLLAMA_OCR_MODEL
+
+        encoded_image = base64.b64encode(image_bytes).decode("utf-8")
+
+        # Try configured model first, then fallback to :latest if no tag was provided.
+        model_candidates = [ocr_model]
+        if ":" not in ocr_model:
+            model_candidates.append(f"{ocr_model}:latest")
+
+        url = f"{base_url}/api/generate"
+        last_error = None
+
+        try:
+            async with httpx.AsyncClient(timeout=120.0) as client:
+                for model in model_candidates:
+                    payload = {
+                        "model": model,
+                        "prompt": "Recognize the text in this image.",
+                        "images": [encoded_image],
+                        "stream": False
+                    }
+
+                    try:
+                        response = await client.post(url, json=payload)
+                        if response.status_code == 200:
+                            result = response.json()
+                            return result.get("response", "").strip()
+
+                        last_error = ProviderError(
+                            "ollama",
+                            f"Ollama server returned status code {response.status_code}: {response.text}"
+                        )
+                        continue
+                    except httpx.RequestError as e:
+                        last_error = ProviderError("ollama", f"Connection to Ollama server failed: {str(e)}")
+                        continue
+
+            if last_error is not None:
+                raise last_error
+            raise ProviderError("ollama", "Unexpected error occurred during OCR: no response from Ollama server")
+        except Exception as e:
+            if isinstance(e, ProviderError):
+                raise e
+            raise ProviderError("ollama", f"Unexpected error occurred during OCR: {str(e)}")

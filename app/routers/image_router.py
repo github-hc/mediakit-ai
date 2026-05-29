@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, UploadFile, File
 from app.schemas.image_schemas import ImageGenerationRequest
 from app.controllers.image_controller import ImageController
 
@@ -20,3 +20,11 @@ controller = ImageController()
 )
 async def generate_image(request: ImageGenerationRequest):
     return await controller.generate_image(request)
+
+@router.post(
+    "/ocr",
+    summary="Perform OCR on an image",
+    description="Perform OCR on the uploaded image using the configured Ollama deepseek-ocr model."
+)
+async def get_image_ocr(file: UploadFile = File(...)):
+    return await controller.get_image_ocr(file)

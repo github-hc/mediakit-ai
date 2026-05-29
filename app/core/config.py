@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     # Ollama Provider Configurations
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     OLLAMA_MODEL: str = "x/flux2-klein:4b"
+    OLLAMA_OCR_MODEL: str = "deepseek-ocr:latest"
 
     # Support loading from .env file
     model_config = SettingsConfigDict(

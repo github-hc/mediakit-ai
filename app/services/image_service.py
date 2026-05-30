@@ -75,7 +75,7 @@ class ImageService:
         last_error = None
 
         try:
-            async with httpx.AsyncClient(timeout=120.0) as client:
+            async with httpx.AsyncClient(timeout=300.0) as client:
                 for model in model_candidates:
                     payload = {
                         "model": model,

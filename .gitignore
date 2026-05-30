@@ -11,7 +11,7 @@ dist/
 build/
 .eggs/
 *.whl
-
+tests/tmp-images
 # Virtual environments
 .venv/
 venv/

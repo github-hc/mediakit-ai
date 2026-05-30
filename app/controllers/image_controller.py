@@ -1,4 +1,4 @@
-from fastapi import Response, UploadFile, File
+from fastapi import Response, UploadFile, File, Form
 from app.schemas.image_schemas import ImageGenerationRequest
 from app.services.image_service import ImageService
 
@@ -20,3 +20,12 @@ class ImageController:
         image_bytes = await file.read()
         ocr_text = await self.image_service.ocr_image(image_bytes)
         return {"text": ocr_text}
+
+    async def ask_image(self, file: UploadFile = File(...), prompt: str = Form(...)) -> dict:
+        """
+        Controller action to send an image and a user prompt to granite3.2-vision:latest
+        and return the model's text response.
+        """
+        image_bytes = await file.read()
+        answer = await self.image_service.ask_image(image_bytes, prompt)
+        return {"response": answer}

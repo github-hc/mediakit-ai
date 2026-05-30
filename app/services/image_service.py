@@ -106,3 +106,42 @@ class ImageService:
             if isinstance(e, ProviderError):
                 raise e
             raise ProviderError("ollama", f"Unexpected error occurred during OCR: {str(e)}")
+
+    async def ask_image(self, image_bytes: bytes, prompt: str) -> str:
+        """
+        Send an image and a user prompt to granite3.2-vision:latest via Ollama
+        and return the model's text response.
+        """
+        import base64
+        import httpx
+        from app.core.exceptions import ProviderError
+
+        base_url = settings.OLLAMA_BASE_URL.rstrip("/")
+        model = "granite3.2-vision:latest"
+        url = f"{base_url}/api/generate"
+
+        encoded_image = base64.b64encode(image_bytes).decode("utf-8")
+
+        payload = {
+            "model": model,
+            "prompt": prompt,
+            "images": [encoded_image],
+            "stream": False
+        }
+
+        try:
+            async with httpx.AsyncClient(timeout=300.0) as client:
+                response = await client.post(url, json=payload)
+                if response.status_code == 200:
+                    result = response.json()
+                    return result.get("response", "").strip()
+                raise ProviderError(
+                    "ollama",
+                    f"Ollama server returned status {response.status_code}: {response.text}"
+                )
+        except httpx.RequestError as e:
+            raise ProviderError("ollama", f"Connection to Ollama server failed: {str(e)}")
+        except Exception as e:
+            if isinstance(e, ProviderError):
+                raise e
+            raise ProviderError("ollama", f"Unexpected error during ask_image: {str(e)}")

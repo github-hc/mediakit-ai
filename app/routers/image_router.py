@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File
+from fastapi import APIRouter, UploadFile, File, Form
 from app.schemas.image_schemas import ImageGenerationRequest
 from app.controllers.image_controller import ImageController
 
@@ -28,3 +28,18 @@ async def generate_image(request: ImageGenerationRequest):
 )
 async def get_image_ocr(file: UploadFile = File(...)):
     return await controller.get_image_ocr(file)
+
+@router.post(
+    "/ask",
+    summary="Ask a question about an image",
+    description=(
+        "Upload an image and provide a natural-language prompt. "
+        "The request is forwarded to the granite3.2-vision:latest model running in Ollama "
+        "and the model's text answer is returned."
+    )
+)
+async def ask_image(
+    file: UploadFile = File(..., description="The image to analyse."),
+    prompt: str = Form(..., description="The question or instruction to send alongside the image.")
+):
+    return await controller.ask_image(file=file, prompt=prompt)
